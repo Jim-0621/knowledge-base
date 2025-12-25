@@ -12,27 +12,28 @@ export default defineConfig({
       { text: 'Java', link: '/java/' },
       { text: 'Python', link: '/python/' },
       { text: 'C#', link: '/csharp/' },
+      { text: '系统架构师', link: '/architect/' },
     ],
 
     // 2. 左侧侧边栏 (Sidebar)
-    sidebar: {
+    // sidebar: {
 
-      // 当用户位于 /java/ 目录下时，显示这个侧边栏
-      '/java/': [
-        {
-          text: 'Java 相关知识点',
-          items: [
-            { text: 'Java 面试核心知识点', link: '/java/java_interview_key_points' },
-            { text: '设计模式', link: '/java/design_pattern' },
-            { text: 'MySQL日志', link: '/java/mysql_log' },
-            { text: 'SpringCloud', link: '/java/springcloud' },
-            { text: 'JavaGuide', link: '/java/javaguide' },
-            { text: '小林Coding', link: '/java/xiaolincoding' },
-            { text: '面渣逆袭', link: '/java/javabetter' }
-          ]
-        }
-      ]
-    },
+    //   // 当用户位于 /java/ 目录下时，显示这个侧边栏
+    //   '/java/': [
+    //     {
+    //       text: 'Java 相关知识点',
+    //       items: [
+    //         { text: 'Java 面试核心知识点', link: '/java/java_interview_key_points' },
+    //         { text: '设计模式', link: '/java/design_pattern' },
+    //         { text: 'MySQL日志', link: '/java/mysql_log' },
+    //         { text: 'SpringCloud', link: '/java/springcloud' },
+    //         { text: 'JavaGuide', link: '/java/javaguide' },
+    //         { text: '小林Coding', link: '/java/xiaolincoding' },
+    //         { text: '面渣逆袭', link: '/java/javabetter' }
+    //       ]
+    //     }
+    //   ]
+    // },
 
     outline: {
       level: 'deep', // 会自动显示 H2 到 H6 的所有标题
