@@ -11,7 +11,7 @@ export default defineConfig({
       { text: '首页', link: '/' },
       { text: 'Java', link: '/java/' },
       { text: 'Python', link: '/python/' },
-      { text: 'C#', link: '/java/csharp' },
+      { text: 'C#', link: '/csharp/' },
     ],
 
     // 2. 左侧侧边栏 (Sidebar)
