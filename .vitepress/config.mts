@@ -39,9 +39,13 @@ export default defineConfig({
       label: '本页目录'
     },
 
-    // 3. 社交链接
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Jim-0621/knowledge-base' }
     ]
-  }
+  },
+
+  ignoreDeadLinks: [
+    // 正则表达式匹配
+    /^http:\/\/localhost/,
+  ],
 })
