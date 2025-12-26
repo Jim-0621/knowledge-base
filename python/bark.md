@@ -83,7 +83,7 @@ pip install requests pyjwt cryptography pytz
 
 
 
-#### 代码示例
+#### 🧩 代码示例
 
 ``` python
 import requests
@@ -300,14 +300,185 @@ if __name__ == "__main__":
 
 
 
-### 最新消息获取
+### 网页新公告推送
 
 
 
+这是一个基于 Python 的轻量级爬虫脚本，专为大学生和科研人员设计。它可以 24 小时监控学校官网、教务处或学院的通知列表，一旦发现新公告（如考试安排、奖学金公示、讲座通知），立刻通过 **Bark** 推送到你的 iPhone 上。
 
+告别手动刷新网页，不再错过任何重要信息！
 
-代码示例
+#### ✨ 核心功能
+
+- **⚡️ 毫秒级响应**：脚本每分钟自动检测一次（频率可调），比手动刷新更快获取信息。
+- **🧩 多站点支持**：通过简单的配置字典，可同时监控多个不同的网站（如研究生院、教务处、学院官网）。
+- **📱 手机强提醒**：集成 iOS **Bark** 推送，点击通知直接跳转到原文链接。
+- **🛡️ 智能防乱码/防报错**：自动处理 SSL 证书错误（针对部分高校内网），自动识别网页编码，智能拼接相对路径 URL。
+
+#### 🛠️ 环境要求
+
+需要 Python 3.x 及以下库：
+
+```Bash
+pip install requests beautifulsoup4
+```
+
+#### ⚙️ 如何配置
+
+**1. 设置监控目标** 在代码顶部的 `WEBSITES` 字典中添加你想监控的页面。你需要找到该页面通知列表的 CSS 选择器（通常是 `a` 标签）。
+
+Python
+
+```
+WEBSITES = {
+    "教务处": {
+        "url": "https://jwc.example.edu.cn/index.htm",
+        "selector": ".list-group li a"  # 示例选择器
+    },
+    # 可以添加更多...
+}
+```
+
+**2. 配置 Bark 推送** 下载 iOS App [Bark](https://apps.apple.com/app/id1403753865)，复制你的 Key 填入代码：
+
+```Python
+BARK_KEYS = [
+    "YOUR_BARK_KEY_HERE"
+]
+```
+
+#### 🚀 运行建议
+
+建议将脚本部署在云服务器或宿舍常开的电脑上，使用 `nohup` 或 `Screen` 后台运行：
+
+```Bash
+# 后台运行并将日志输出到 log.txt
+nohup python3 monitor.py > log.txt 2>&1 &
+```
+
+#### 🧩 代码示例
 
 ``` python
+import requests
+from bs4 import BeautifulSoup
+import time
+from datetime import datetime
+import urllib3
+from urllib.parse import urljoin
+
+# ------------------- 配置区域 -------------------
+# 配置需要监控的网站列表
+# selector: 使用 CSS 选择器定位通知列表中的 <a> 标签
+WEBSITES = {
+    "研究生院": {
+        "url": "https://yjsy.example.edu.cn/zsgz1/tzgg.htm",
+        "selector": ".ny-newslist-nav li a"
+    },
+    "护理学院": {
+        "url": "https://hlxy.example.edu.cn/tzgg.htm",
+        "selector": ".newslist li a"
+    }
+}
+
+# 请求头，模拟浏览器
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+# Bark 推送 Key (请替换为你自己的 Key)
+BARK_KEYS = [
+    "YOUR_BARK_KEY_1",
+    "YOUR_BARK_KEY_2"
+]
+
+# 推送时的图标 (可选)
+NOTIFICATION_ICON = "https://www.example.edu.cn/favicon.ico"
+
+# ----------------------------------------------
+
+latest_notices = {}  # 记录各网站最新的通知标题，用于去重
+
+# 忽略 SSL 证书警告 (针对部分高校网站证书过期或自签名的情况)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+def fetch_latest_notice(website_name, url, selector):
+    """获取网页最新通知"""
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=15, verify=False)
+        # 自动识别网页编码，防止中文乱码
+        response.encoding = response.apparent_encoding
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        notices = soup.select(selector)  # 根据配置的选择器获取通知列表
+        if not notices:
+            print(f"[{datetime.now()}] {website_name}: 未找到通知列表，请检查 CSS 选择器是否失效")
+            return None
+
+        # 获取第一条（最新）通知
+        first_notice = notices[0]
+        latest_title = first_notice.get_text(strip=True)
+        raw_link = first_notice.get("href")
+        
+        # 智能拼接完整 URL (兼容相对路径和绝对路径)
+        latest_link = urljoin(url, raw_link)
+
+        print(f"[{datetime.now()}] {website_name} 当前最新: {latest_title}")
+        return latest_title, latest_link
+        
+    except Exception as e:
+        print(f"[{datetime.now()}] {website_name} 访问失败: {e}")
+        return None
+
+
+def send_bark_notification(title, message, link):
+    """发送 Bark 通知到 iPhone"""
+    for key in BARK_KEYS:
+        # 构建 Bark API URL
+        # isArchive=1 表示自动保存通知历史
+        bark_url = f"https://api.day.app/{key}/{title}/{message}"
+        params = {
+            "url": link,
+            "icon": NOTIFICATION_ICON,
+            "isArchive": 1
+        }
+        
+        try:
+            requests.get(bark_url, params=params, timeout=5)
+            print(f"Bark 推送成功 -> {key[:6]}...")
+        except Exception as e:
+            print(f"Bark 推送失败 ({key[:6]}...): {e}")
+
+
+def check_for_updates():
+    """轮询逻辑：检测网站是否有新内容"""
+    global latest_notices
+
+    for name, config in WEBSITES.items():
+        result = fetch_latest_notice(name, config["url"], config["selector"])
+        
+        if result:
+            title, link = result
+            
+            # 初始化：如果是第一次运行，只记录不推送，防止启动时狂发消息
+            if name not in latest_notices:
+                latest_notices[name] = title
+                print(f"[{name}] 初始化基准通知: {title}")
+            
+            # 更新检测：如果标题与内存中记录的不一致，说明有更新
+            elif latest_notices[name] != title:
+                print(f"🔔 发现新通知: {title}")
+                send_bark_notification(f"{name}有新通知", title, link)
+                latest_notices[name] = title # 更新内存记录
+
+
+def run_monitor(interval=60):
+    """主循环"""
+    print(f"🚀 监控服务已启动，扫描间隔: {interval}秒")
+    while True:
+        check_for_updates()
+        time.sleep(interval)
+
+
+if __name__ == "__main__":
+    # 建议设置 60-300 秒，避免请求过频被封 IP
+    run_monitor(60)
 ```
 
