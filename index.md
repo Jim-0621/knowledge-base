@@ -1,5 +1,6 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
+# 在根目录运行以下命令即可在本地预览
+# npm run docs:dev
 layout: home
 
 hero:
